@@ -11,8 +11,10 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
         }
         .contenedor {
             background-color: white;
@@ -40,7 +42,7 @@
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
-            box-sizing: border-box; /* Para que el padding no rompa el ancho */
+            box-sizing: border-box; 
         }
         button {
             width: 100%;
@@ -56,7 +58,6 @@
         button:hover {
             background-color: #004494;
         }
-        /* Contenedor donde aparecerá el QR más adelante */
         #resultado-qr {
             margin-top: 20px;
             text-align: center;
@@ -68,7 +69,6 @@
     <div class="contenedor">
         <h2>Nuevo Informe de Distribución</h2>
         
-        <!-- Formulario para el mecánico -->
         <form id="formulario-taller">
             <div class="grupo-input">
                 <label for="patente">Patente del vehículo:</label>
@@ -88,13 +88,11 @@
             <button type="submit">Generar QR</button>
         </form>
 
-        <!-- Aquí inyectaremos el código QR generado en el próximo paso -->
         <div id="resultado-qr"></div>
     </div>
 
     <script>
-        // 1. Autocompletar la fecha de hoy al cargar la página (lo que ya teníamos)
-        window.onload = function() {
+        window.onload = function () {
             const inputFecha = document.getElementById('fecha');
             const hoy = new Date();
             const año = hoy.getFullYear();
@@ -107,52 +105,102 @@
             inputFecha.value = `${año}-${mes}-${dia}`;
         };
 
-        // 2. Capturar el formulario cuando se envía
         const formulario = document.getElementById('formulario-taller');
-        
-        formulario.addEventListener('submit', function(evento) {
-            // Evitamos que la página se recargue al enviar el formulario
+
+        formulario.addEventListener('submit', function (evento) {
             evento.preventDefault();
 
-            // Capturamos los valores que escribió el mecánico
             const patente = document.getElementById('patente').value;
             const kilometraje = document.getElementById('kilometraje').value;
-            const fechaIngresada = document.getElementById('fecha').value; // Formato YYYY-MM-DD
+            const fechaIngresada = document.getElementById('fecha').value;
 
-            //  Calcular el kilometraje FINAL
-            const kilometrajeProx = parseInt(kilometraje) + 50000;
+            const [año, mes, dia] = fechaIngresada.split('-');
+            const fechaActualStr = `${dia}/${mes}/${año}`;
 
-            // Formateamos también la fecha actual para que quede prolija en el informe final
-            // 4. Armar la URL con los parámetros
-            // Aquí pondrás el link de GitHub Pages u host donde subas el proyecto final
-            const urlBase = 'https://capone567.github.io/taller-QR-project/informe.html'; 
-            
-            // Usamos URLSearchParams que es ideal para armar links de forma segura
+            const kmActual = parseInt(kilometraje);
+            const kmProximo = kmActual + 50000;
+
+            const urlBase = 'https://capone567.github.io/taller-QR-project/informe.html';
+
             const parametros = new URLSearchParams({
                 pat: patente,
-                km: kilometraje,
-                km_prox: kilometrajeProx,
-                f_act: fechaIngresada,
+                km: kmActual,
+                f_act: fechaActualStr,
+                km_prox: kmProximo
             });
 
             const urlFinal = `${urlBase}?${parametros.toString()}`;
-
-            // 5. Generar el código QR usando la API gratuita
             const urlQR = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(urlFinal)}`;
 
-            // 6. Mostrar el resultado en pantalla
             const contenedorQR = document.getElementById('resultado-qr');
             contenedorQR.innerHTML = `
                 <hr style="border: 1px solid #ccc; margin: 20px 0;">
                 <h3 style="color: #333;">QR Listo para Imprimir</h3>
+                
+                <button type="button" id="btn-descargar-qr" style="background-color: #28a745; margin-bottom: 15px;">⬇️ Descargar Etiqueta</button>
+                <br>
+
                 <img src="${urlQR}" alt="Código QR del Informe" style="border: 5px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.2); border-radius: 10px;">
                 <p><strong>Patente:</strong> ${patente.toUpperCase()}</p>
-                <p><strong>Próximo cambio:</strong> ${kilometrajeProx}</p>
+                <p><strong>Próximo cambio a los:</strong> ${kmProximo.toLocaleString('es-AR')} km</p>
                 <p><a href="${urlFinal}" target="_blank" style="color: #0056b3; text-decoration: none;">📄 Probar cómo se verá el informe</a></p>
             `;
+
+            document.getElementById('btn-descargar-qr').addEventListener('click', function() {
+                const btn = this;
+                btn.innerText = "⏳ Generando Plantilla...";
+
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 400;
+                canvas.height = 450;
+
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = '#000000';
+                ctx.textAlign = 'center';
+                
+                ctx.font = 'bold 24px Arial';
+                ctx.fillText('TALLER SOLO DISTRIBUCION', 200, 50);
+                
+                ctx.font = 'bold 18px Arial';
+                ctx.fillText(`Patente: ${patente.toUpperCase()}`, 200, 85);
+
+                const imgQR = new Image();
+                imgQR.crossOrigin = "Anonymous";
+                imgQR.src = urlQR;
+                
+                imgQR.onload = function() {
+                    ctx.drawImage(imgQR, 75, 120, 250, 250);
+                    
+                    ctx.font = '14px Arial';
+                    ctx.fillStyle = '#555555';
+                    ctx.fillText('Escaneá para ver el informe digital', 200, 410);
+
+                    canvas.toBlob(function(blob) {
+                        const urlBlob = window.URL.createObjectURL(blob);
+                        const linkFalso = document.createElement('a');
+                        linkFalso.style.display = 'none';
+                        linkFalso.href = urlBlob;
+                        linkFalso.download = `Etiqueta_${patente.toUpperCase().replace(/\s/g, '')}.png`;
+                        
+                        document.body.appendChild(linkFalso);
+                        linkFalso.click();
+                        
+                        window.URL.revokeObjectURL(urlBlob);
+                        document.body.removeChild(linkFalso);
+                        
+                        btn.innerText = "⬇️ Descargar Etiqueta";
+                    }, 'image/png');
+                };
+
+                imgQR.onerror = function() {
+                    alert("Hubo un error al generar la plantilla. Intentá de nuevo.");
+                    btn.innerText = "⬇️ Descargar Etiqueta";
+                };
+            });
         });
     </script>
-    </script>
-
 </body>
 </html>
