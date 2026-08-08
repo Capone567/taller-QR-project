@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe de Distribución - Taller</title>
+    <style>
+        /* Estilos generales pensados para celulares */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #eef2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .tarjeta {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .cabecera {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+        }
+        .cabecera img {
+            max-width: 120px;
+            margin-bottom: 10px;
+        }
+        .cabecera h1 {
+            margin: 0;
+            font-size: 22px;
+            letter-spacing: 1px;
+        }
+        .contenido {
+            padding: 25px;
+        }
+        .dato-grupo {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+        .dato-grupo:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .etiqueta {
+            font-size: 14px;
+            color: #777;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+        .valor {
+            font-size: 18px;
+            color: #333;
+            font-weight: 600;
+        }
+        .alerta {
+            color: #d9534f; /* Color rojo para destacar la próxima fecha */
+            font-size: 20px;
+        }
+        /* Botones de Redes Sociales */
+        .redes {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .btn {
+            display: block;
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .btn-whatsapp { background-color: #25D366; }
+        .btn-instagram { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
+        .btn-facebook { background-color: #1877F2; }
+    </style>
+</head>
+<body>
+
+    <div class="tarjeta">
+        <!-- Logo y Nombre del Taller -->
+        <div class="cabecera">
+            <!-- Reemplaza el src con la URL del logo real del taller -->
+            <img src="https://cdn-icons-png.flaticon.com/512/1995/1995470.png" alt="Logo del Taller">
+            <h1>TALLER DISTRIBUCIONES</h1>
+        </div>
+
+        <div class="contenido">
+            <div class="dato-grupo">
+                <span class="etiqueta">Vehículo (Patente)</span>
+                <span class="valor" id="vista-patente">Cargando...</span>
+            </div>
+
+            <div class="dato-grupo">
+                <span class="etiqueta">Kilometraje de Servicio</span>
+                <span class="valor" id="vista-km">Cargando...</span> <span class="valor">km</span>
+            </div>
+
+            <div class="dato-grupo">
+                <span class="etiqueta">Fecha del Trabajo</span>
+                <span class="valor" id="vista-fecha-act">Cargando...</span>
+            </div>
+
+            <div class="dato-grupo">
+                <span class="etiqueta" style="color: #d9534f;">Próxima Revisión (6 meses)</span>
+                <span class="valor alerta" id="vista-fecha-prox">Cargando...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Redes y Contacto -->
+    <div class="redes">
+        <!-- Cambia los links (href) por los del taller -->
+        <a href="https://wa.me/5491100000000" class="btn btn-whatsapp" target="_blank">Contactar por WhatsApp</a>
+        <a href="https://instagram.com/tutaller" class="btn btn-instagram" target="_blank">Seguinos en Instagram</a>
+        <a href="https://facebook.com/tutaller" class="btn btn-facebook" target="_blank">Nuestro Facebook</a>
+    </div>
+
+    <script>
+        // 1. Leer los parámetros de la URL cuando la página carga
+        // window.location.search obtiene la parte del link que tiene los datos (ej: ?pat=AB123CD&km=50000)
+        const parametrosURL = new URLSearchParams(window.location.search);
+
+        // 2. Extraer cada dato. Si por algún error no hay dato, ponemos "No disponible"
+        const patente = parametrosURL.get('pat') || 'No disponible';
+        const kilometraje = parametrosURL.get('km') || '0';
+        const fechaActual = parametrosURL.get('f_act') || '--/--/----';
+        const fechaProxima = parametrosURL.get('f_prox') || '--/--/----';
+
+        // 3. Inyectar los datos en el HTML usando los IDs que preparamos
+        document.getElementById('vista-patente').textContent = patente.toUpperCase();
+        
+        // Agregamos puntos a los miles del kilometraje para que se lea mejor (ej: 50.000)
+        document.getElementById('vista-km').textContent = Number(kilometraje).toLocaleString('es-AR');
+        
+        document.getElementById('vista-fecha-act').textContent = fechaActual;
+        document.getElementById('vista-fecha-prox').textContent = fechaProxima;
+    </script>
+
+</body>
+</html>

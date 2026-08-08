@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Informes - Taller</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .contenedor {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        .grupo-input {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box; /* Para que el padding no rompa el ancho */
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #004494;
+        }
+        /* Contenedor donde aparecerá el QR más adelante */
+        #resultado-qr {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="contenedor">
+        <h2>Nuevo Informe de Distribución</h2>
+        
+        <!-- Formulario para el mecánico -->
+        <form id="formulario-taller">
+            <div class="grupo-input">
+                <label for="patente">Patente del vehículo:</label>
+                <input type="text" id="patente" placeholder="Ej: AB 123 CD" required>
+            </div>
+
+            <div class="grupo-input">
+                <label for="kilometraje">Kilometraje actual:</label>
+                <input type="number" id="kilometraje" placeholder="Ej: 60000" required>
+            </div>
+
+            <div class="grupo-input">
+                <label for="fecha">Fecha de finalización:</label>
+                <input type="date" id="fecha" required>
+            </div>
+
+            <button type="submit">Generar QR</button>
+        </form>
+
+        <!-- Aquí inyectaremos el código QR generado en el próximo paso -->
+        <div id="resultado-qr"></div>
+    </div>
+
+    <script>
+        // 1. Autocompletar la fecha de hoy al cargar la página (lo que ya teníamos)
+        window.onload = function() {
+            const inputFecha = document.getElementById('fecha');
+            const hoy = new Date();
+            const año = hoy.getFullYear();
+            let mes = hoy.getMonth() + 1;
+            let dia = hoy.getDate();
+
+            if (mes < 10) mes = '0' + mes;
+            if (dia < 10) dia = '0' + dia;
+
+            inputFecha.value = `${año}-${mes}-${dia}`;
+        };
+
+        // 2. Capturar el formulario cuando se envía
+        const formulario = document.getElementById('formulario-taller');
+        
+        formulario.addEventListener('submit', function(evento) {
+            // Evitamos que la página se recargue al enviar el formulario
+            evento.preventDefault();
+
+            // Capturamos los valores que escribió el mecánico
+            const patente = document.getElementById('patente').value;
+            const kilometraje = document.getElementById('kilometraje').value;
+            const fechaIngresada = document.getElementById('fecha').value; // Formato YYYY-MM-DD
+
+            // 3. Calcular la fecha de la próxima distribución (6 meses después)
+            // Separamos el año, mes y día de la fecha ingresada
+            const [anio, mes, dia] = fechaIngresada.split('-');
+            
+            // Creamos un objeto Date. Nota: los meses en JS empiezan en 0, por eso restamos 1.
+            const fechaCalculo = new Date(anio, mes - 1, dia);
+            
+            // Le sumamos 6 meses
+            fechaCalculo.setMonth(fechaCalculo.getMonth() + 6);
+
+            // Volvemos a formatear la nueva fecha a formato legible (DD/MM/YYYY)
+            const diaProx = String(fechaCalculo.getDate()).padStart(2, '0');
+            const mesProx = String(fechaCalculo.getMonth() + 1).padStart(2, '0');
+            const anioProx = fechaCalculo.getFullYear();
+            const proximaFechaStr = `${diaProx}/${mesProx}/${anioProx}`;
+
+            // Formateamos también la fecha actual para que quede prolija en el informe final
+            const fechaActualStr = `${dia}/${mes}/${anio}`;
+
+            // 4. Armar la URL con los parámetros
+            // Aquí pondrás el link de GitHub Pages u host donde subas el proyecto final
+            const urlBase = 'https://tutaller.github.io/informe.html'; 
+            
+            // Usamos URLSearchParams que es ideal para armar links de forma segura
+            const parametros = new URLSearchParams({
+                pat: patente,
+                km: kilometraje,
+                f_act: fechaActualStr,
+                f_prox: proximaFechaStr
+            });
+
+            const urlFinal = `${urlBase}?${parametros.toString()}`;
+
+            // 5. Generar el código QR usando la API gratuita
+            const urlQR = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(urlFinal)}`;
+
+            // 6. Mostrar el resultado en pantalla
+            const contenedorQR = document.getElementById('resultado-qr');
+            contenedorQR.innerHTML = `
+                <hr style="border: 1px solid #ccc; margin: 20px 0;">
+                <h3 style="color: #333;">QR Listo para Imprimir</h3>
+                <img src="${urlQR}" alt="Código QR del Informe" style="border: 5px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.2); border-radius: 10px;">
+                <p><strong>Patente:</strong> ${patente.toUpperCase()}</p>
+                <p><strong>Próximo cambio:</strong> ${proximaFechaStr}</p>
+                <p><a href="${urlFinal}" target="_blank" style="color: #0056b3; text-decoration: none;">📄 Probar cómo se verá el informe</a></p>
+            `;
+        });
+    </script>
+    </script>
+
+</body>
+</html>
