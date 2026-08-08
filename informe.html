@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,42 +16,50 @@
             flex-direction: column;
             align-items: center;
         }
+
         .tarjeta {
             background-color: #ffffff;
             width: 100%;
             max-width: 400px;
             border-radius: 15px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             margin-bottom: 20px;
         }
+
         .cabecera {
             background-color: #1a1a1a;
             color: #ffffff;
             text-align: center;
             padding: 20px;
         }
+
         .cabecera img {
             max-width: 120px;
             margin-bottom: 10px;
         }
+
         .cabecera h1 {
             margin: 0;
             font-size: 22px;
             letter-spacing: 1px;
         }
+
         .contenido {
             padding: 25px;
         }
+
         .dato-grupo {
             margin-bottom: 20px;
             border-bottom: 1px solid #f0f0f0;
             padding-bottom: 10px;
         }
+
         .dato-grupo:last-child {
             border-bottom: none;
             margin-bottom: 0;
         }
+
         .etiqueta {
             font-size: 14px;
             color: #777;
@@ -59,15 +68,19 @@
             margin-bottom: 5px;
             display: block;
         }
+
         .valor {
             font-size: 18px;
             color: #333;
             font-weight: 600;
         }
+
         .alerta {
-            color: #d9534f; /* Color rojo para destacar la próxima fecha */
+            color: #d9534f;
+            /* Color rojo para destacar la próxima fecha */
             font-size: 20px;
         }
+
         /* Botones de Redes Sociales */
         .redes {
             display: flex;
@@ -76,6 +89,7 @@
             width: 100%;
             max-width: 400px;
         }
+
         .btn {
             display: block;
             text-align: center;
@@ -86,11 +100,28 @@
             font-weight: bold;
             font-size: 16px;
         }
-        .btn-whatsapp { background-color: #25D366; }
-        .btn-instagram { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
-        .btn-facebook { background-color: #1877F2; }
+
+        .btn-whatsapp {
+            background-color: #25D366;
+        }
+
+        .btn-instagram {
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+        }
+
+        .btn-facebook {
+            background-color: #1877F2;
+        }
+
+        .btn-calendario {
+            background-color: #4285F4;
+            /* Azul de Google */
+            margin-bottom: 15px;
+            /* Un poco de espacio extra abajo para separarlo de las redes */
+        }
     </style>
 </head>
+
 <body>
 
     <div class="tarjeta">
@@ -108,7 +139,7 @@
             </div>
 
             <div class="dato-grupo">
-                <span class="etiqueta">Kilometraje de Servicio</span>
+                <span class="etiqueta">Kilometraje del vehículo</span>
                 <span class="valor" id="vista-km">Cargando...</span> <span class="valor">km</span>
             </div>
 
@@ -130,6 +161,8 @@
         <a href="https://wa.me/5491100000000" class="btn btn-whatsapp" target="_blank">Contactar por WhatsApp</a>
         <a href="https://instagram.com/tutaller" class="btn btn-instagram" target="_blank">Seguinos en Instagram</a>
         <a href="https://facebook.com/tutaller" class="btn btn-facebook" target="_blank">Nuestro Facebook</a>
+        <!-- Botón del Calendario -->
+        <a href="#" id="btn-calendario" class="btn btn-calendario" target="_blank">🗓️ Agendar en mi Calendario</a>
     </div>
 
     <script>
@@ -145,13 +178,43 @@
 
         // 3. Inyectar los datos en el HTML usando los IDs que preparamos
         document.getElementById('vista-patente').textContent = patente.toUpperCase();
-        
+
         // Agregamos puntos a los miles del kilometraje para que se lea mejor (ej: 50.000)
         document.getElementById('vista-km').textContent = Number(kilometraje).toLocaleString('es-AR');
-        
+
         document.getElementById('vista-fecha-act').textContent = fechaActual;
         document.getElementById('vista-fecha-prox').textContent = fechaProxima;
+
+        // --- NUEVO: Lógica para agendar en Google Calendar ---
+        // Solo armamos el link si tenemos una fecha válida
+        if (fechaProxima !== '--/--/----') {
+            // 1. Separamos "DD/MM/YYYY" en partes
+            const partesFecha = fechaProxima.split('/');
+
+            if (partesFecha.length === 3) {
+                const dia = partesFecha[0];
+                const mes = partesFecha[1];
+                const anio = partesFecha[2];
+
+                // 2. Google Calendar pide formato YYYYMMDD para eventos de todo el día
+                const fechaFormatoGoogle = `${anio}${mes}${dia}`;
+                // Para eventos de todo el día, Google pide fecha de inicio y fin separadas por "/"
+                // Le pasamos el mismo día para que sea un recordatorio de un día entero
+                const fechasURL = `${fechaFormatoGoogle}/${fechaFormatoGoogle}`;
+
+                // 3. Preparamos los textos (encodeURIComponent asegura que los espacios funcionen en el link)
+                const tituloEvento = encodeURIComponent(`Revisión Distribución - Patente: ${patente.toUpperCase()}`);
+                const detalleEvento = encodeURIComponent(`Turno de revisión sugerido (6 meses) para el vehículo ${patente.toUpperCase()} en Taller Distribuciones.`);
+
+                // 4. Armamos la URL universal de Google Calendar
+                const urlCalendario = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${tituloEvento}&dates=${fechasURL}&details=${detalleEvento}`;
+
+                // 5. Se la asignamos al botón
+                document.getElementById('btn-calendario').href = urlCalendario;
+            }
+        }
     </script>
 
 </body>
+
 </html>
