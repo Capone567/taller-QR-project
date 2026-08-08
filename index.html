@@ -119,25 +119,10 @@
             const kilometraje = document.getElementById('kilometraje').value;
             const fechaIngresada = document.getElementById('fecha').value; // Formato YYYY-MM-DD
 
-            // 3. Calcular la fecha de la próxima distribución (6 meses después)
-            // Separamos el año, mes y día de la fecha ingresada
-            const [anio, mes, dia] = fechaIngresada.split('-');
-            
-            // Creamos un objeto Date. Nota: los meses en JS empiezan en 0, por eso restamos 1.
-            const fechaCalculo = new Date(anio, mes - 1, dia);
-            
-            // Le sumamos 6 meses
-            fechaCalculo.setMonth(fechaCalculo.getMonth() + 6);
-
-            // Volvemos a formatear la nueva fecha a formato legible (DD/MM/YYYY)
-            const diaProx = String(fechaCalculo.getDate()).padStart(2, '0');
-            const mesProx = String(fechaCalculo.getMonth() + 1).padStart(2, '0');
-            const anioProx = fechaCalculo.getFullYear();
-            const proximaFechaStr = `${diaProx}/${mesProx}/${anioProx}`;
+            //  Calcular el kilometraje FINAL
+            const kilometrajeProx = parseInt(kilometraje) + 50000;
 
             // Formateamos también la fecha actual para que quede prolija en el informe final
-            const fechaActualStr = `${dia}/${mes}/${anio}`;
-
             // 4. Armar la URL con los parámetros
             // Aquí pondrás el link de GitHub Pages u host donde subas el proyecto final
             const urlBase = 'https://capone567.github.io/taller-QR-project/informe.html'; 
@@ -146,8 +131,8 @@
             const parametros = new URLSearchParams({
                 pat: patente,
                 km: kilometraje,
-                f_act: fechaActualStr,
-                f_prox: proximaFechaStr
+                km_prox: kilometrajeProx,
+                f_act: fechaIngresada,
             });
 
             const urlFinal = `${urlBase}?${parametros.toString()}`;
@@ -162,7 +147,7 @@
                 <h3 style="color: #333;">QR Listo para Imprimir</h3>
                 <img src="${urlQR}" alt="Código QR del Informe" style="border: 5px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.2); border-radius: 10px;">
                 <p><strong>Patente:</strong> ${patente.toUpperCase()}</p>
-                <p><strong>Próximo cambio:</strong> ${proximaFechaStr}</p>
+                <p><strong>Próximo cambio:</strong> ${kilometrajeProx}</p>
                 <p><a href="${urlFinal}" target="_blank" style="color: #0056b3; text-decoration: none;">📄 Probar cómo se verá el informe</a></p>
             `;
         });
